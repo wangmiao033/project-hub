@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>熊动项目聚合台 - 预览</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: #f6f8fb;
+      color: #0f172a;
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.45);
+      border-radius: 999px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .card-hover {
+      transition: all 0.18s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+    .resource-actions {
+      opacity: 0;
+      transform: translateY(4px);
+      transition: all 0.18s ease;
+      pointer-events: none;
+    }
+    .resource-card:hover .resource-actions {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .search-panel {
+      display: none;
+    }
+    .search-panel.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="min-h-screen flex">
+
+    <!-- 左侧导航 -->
+    <aside class="w-[280px] bg-[#081226] text-white px-5 py-6 flex flex-col">
+      <div>
+        <div class="text-[28px] font-bold tracking-tight">熊动项目聚合台</div>
+        <p class="mt-3 text-sm leading-6 text-slate-300">
+          统一管理项目入口、WPS 文档、渠道账号与最近使用记录
+        </p>
+      </div>
+
+      <div class="mt-8 rounded-[28px] border border-white/10 bg-white/5 p-3">
+        <div class="px-3 pb-2 text-xs uppercase tracking-[0.22em] text-slate-400">导航</div>
+
+        <div class="space-y-1.5">
+          <button class="w-full rounded-2xl bg-white px-4 py-3 text-left text-sm font-medium text-slate-900">首页总览</button>
+          <button class="w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/10">项目聚合</button>
+          <button class="w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/10">渠道账号</button>
+          <button class="w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/10">我的常用</button>
+          <button class="w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/10">最近访问</button>
+          <button class="w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/10">在线人员</button>
+          <button class="w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/10">操作日志</button>
+          <button class="w-full rounded-2xl px-4 py-3 text-left text-sm text-slate-200 hover:bg-white/10">系统设置</button>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-[28px] border border-white/10 bg-white/5 p-4">
+        <div class="text-sm font-medium">当前账号</div>
+        <div class="mt-3 text-sm text-slate-100">wangmiao@company.com</div>
+        <div class="mt-1 text-xs text-slate-400">管理员</div>
+
+        <div class="mt-4 flex items-center justify-between rounded-2xl bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+          <span>当前在线</span>
+          <span class="font-semibold">3 人</span>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-6 text-xs text-slate-500">
+        内部聚合入口 V1 预览
+      </div>
+    </aside>
+
+    <!-- 主体 -->
+    <main class="flex-1 p-6 overflow-hidden">
+      <!-- 顶部 -->
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-[34px] font-bold tracking-tight text-slate-900">首页总览</h1>
+          <p class="mt-2 max-w-4xl text-sm leading-6 text-slate-500">
+            首页优先展示高频动作：找项目、开文档、开渠道、看谁在使用、看最近更新。减少翻 Excel，直接从聚合台进入。
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 relative">
+          <div class="relative">
+            <div class="flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <input
+                id="globalSearch"
+                type="text"
+                placeholder="搜索项目 / WPS文档 / 渠道 / 负责人"
+                class="w-[380px] bg-transparent text-sm outline-none"
+                onfocus="toggleSearch(true)"
+                oninput="filterSearchResults()"
+              />
+            </div>
+
+            <div id="searchPanel" class="search-panel absolute right-0 z-30 mt-3 w-[520px] rounded-[24px] border border-slate-200 bg-white p-3 shadow-xl">
+              <div class="px-3 pb-2 text-xs uppercase tracking-[0.18em] text-slate-400">搜索结果</div>
+              <div id="searchResultList" class="space-y-2 max-h-[360px] overflow-y-auto scrollbar-thin"></div>
+            </div>
+          </div>
+
+          <button class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium shadow-sm hover:bg-slate-50">
+            + 新增项目
+          </button>
+          <button class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-slate-800">
+            + 新增渠道
+          </button>
+        </div>
+      </div>
+
+      <!-- 统计卡 -->
+      <section class="mt-6 grid grid-cols-4 gap-4">
+        <div class="card-hover rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+          <div class="text-sm text-slate-500">项目总数</div>
+          <div class="mt-2 text-4xl font-bold tracking-tight">7</div>
+          <div class="mt-2 text-xs text-slate-400">其中 5 个为 WPS 文档项目</div>
+        </div>
+
+        <div class="card-hover rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+          <div class="text-sm text-slate-500">渠道总数</div>
+          <div class="mt-2 text-4xl font-bold tracking-tight">12</div>
+          <div class="mt-2 text-xs text-slate-400">常用 8 个</div>
+        </div>
+
+        <div class="card-hover rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+          <div class="text-sm text-slate-500">当前在线</div>
+          <div class="mt-2 text-4xl font-bold tracking-tight">3</div>
+          <div class="mt-2 text-xs text-slate-400">可实时看到谁正在使用</div>
+        </div>
+
+        <div class="card-hover rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+          <div class="text-sm text-slate-500">待更新入口</div>
+          <div class="mt-2 text-4xl font-bold tracking-tight">1</div>
+          <div class="mt-2 text-xs text-slate-400">链接异常或需替换</div>
+        </div>
+      </section>
+
+      <section class="mt-6 grid grid-cols-12 gap-6 h-[calc(100vh-220px)]">
+        <!-- 左侧主内容 -->
+        <div class="col-span-8 overflow-y-auto pr-1 scrollbar-thin space-y-6">
+
+          <!-- 我的常用 -->
+          <div class="rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold">我的常用</h2>
+                <p class="mt-1 text-sm text-slate-500">固定你最常打开的项目、文档和渠道，减少重复查找</p>
+              </div>
+              <button class="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">管理常用</button>
+            </div>
+
+            <div class="mt-4 grid grid-cols-3 gap-3">
+              <div class="card-hover rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm font-semibold">六界仙尊 / 结算表</div>
+                  <span class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] text-amber-700">WPS表格</span>
+                </div>
+                <div class="mt-3 flex gap-2">
+                  <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                  <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制链接</button>
+                </div>
+              </div>
+
+              <div class="card-hover rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm font-semibold">OPPO渠道后台</div>
+                  <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] text-blue-700">渠道后台</span>
+                </div>
+                <div class="mt-3 flex gap-2">
+                  <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                  <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制账号</button>
+                </div>
+              </div>
+
+              <div class="card-hover rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm font-semibold">一起来修仙 / 投放表</div>
+                  <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] text-emerald-700">WPS表格</span>
+                </div>
+                <div class="mt-3 flex gap-2">
+                  <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                  <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制链接</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 项目聚合 -->
+          <div class="rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold">项目聚合</h2>
+                <p class="mt-1 text-sm text-slate-500">每个项目下挂多个资源入口，适合接 WPS 文档、后台地址、下载地址</p>
+              </div>
+
+              <div class="flex gap-2">
+                <button class="rounded-xl bg-slate-900 px-3 py-2 text-sm text-white">全部项目</button>
+                <button class="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">仅 WPS</button>
+                <button class="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">需更新</button>
+              </div>
+            </div>
+
+            <div class="mt-5 space-y-4">
+
+              <!-- 项目1 -->
+              <div class="card-hover rounded-[24px] border border-slate-100 bg-slate-50/70 p-5">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="text-lg font-bold">六界仙尊</div>
+                      <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs text-emerald-700">正常</span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-4 text-sm text-slate-500">
+                      <span>负责人：运营组</span>
+                      <span>最近更新：今天 10:12</span>
+                      <span>协作成员：王、刘、陈</span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button class="rounded-xl bg-slate-900 px-3 py-2 text-sm text-white">查看详情</button>
+                    <button class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50">编辑项目</button>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-3 gap-3">
+                  <div class="resource-card rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">策划文档</div>
+                      <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] text-blue-700">WPS文档</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">项目主策划、活动说明、版本方向</div>
+                    <div class="resource-actions mt-4 flex gap-2">
+                      <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">复制链接</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">⭐常用</button>
+                    </div>
+                  </div>
+
+                  <div class="resource-card rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">结算表</div>
+                      <span class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] text-amber-700">WPS表格</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">项目数据记录、流水汇总、对账使用</div>
+                    <div class="resource-actions mt-4 flex gap-2">
+                      <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">复制链接</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">⭐常用</button>
+                    </div>
+                  </div>
+
+                  <div class="resource-card rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">渠道后台</div>
+                      <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700">后台地址</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">渠道投放、版本包、运营后台入口</div>
+                    <div class="resource-actions mt-4 flex gap-2">
+                      <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">复制链接</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">⭐常用</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 项目2 -->
+              <div class="card-hover rounded-[24px] border border-slate-100 bg-slate-50/70 p-5">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="text-lg font-bold">一起来修仙</div>
+                      <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs text-emerald-700">正常</span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-4 text-sm text-slate-500">
+                      <span>负责人：商务组</span>
+                      <span>最近更新：今天 09:46</span>
+                      <span>协作成员：李、赵</span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button class="rounded-xl bg-slate-900 px-3 py-2 text-sm text-white">查看详情</button>
+                    <button class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50">编辑项目</button>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-3 gap-3">
+                  <div class="resource-card rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">投放表</div>
+                      <span class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] text-amber-700">WPS表格</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">投放记录、预算、转化数据</div>
+                    <div class="resource-actions mt-4 flex gap-2">
+                      <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">复制链接</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">⭐常用</button>
+                    </div>
+                  </div>
+
+                  <div class="resource-card rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">活动文档</div>
+                      <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] text-blue-700">WPS文档</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">活动节奏、奖励、节点配置说明</div>
+                    <div class="resource-actions mt-4 flex gap-2">
+                      <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">复制链接</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">⭐常用</button>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-dashed border-slate-200 bg-white p-4 flex items-center justify-center text-sm text-slate-400">
+                    + 添加资源入口
+                  </div>
+                </div>
+              </div>
+
+              <!-- 项目3 -->
+              <div class="card-hover rounded-[24px] border border-slate-100 bg-slate-50/70 p-5">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="text-lg font-bold">创世封神</div>
+                      <span class="rounded-full bg-amber-50 px-3 py-1 text-xs text-amber-700">需更新</span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-4 text-sm text-slate-500">
+                      <span>负责人：发行组</span>
+                      <span>最近更新：昨天 18:20</span>
+                      <span>协作成员：吴、周、黄</span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button class="rounded-xl bg-slate-900 px-3 py-2 text-sm text-white">查看详情</button>
+                    <button class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50">编辑项目</button>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-3 gap-3">
+                  <div class="resource-card rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">发行后台</div>
+                      <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700">后台地址</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">包体、配置、版本管理后台</div>
+                    <div class="resource-actions mt-4 flex gap-2">
+                      <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">复制链接</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">⭐常用</button>
+                    </div>
+                  </div>
+
+                  <div class="resource-card rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm font-semibold">版本说明</div>
+                      <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] text-blue-700">WPS文档</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-400">版本信息、更新节点、补充说明</div>
+                    <div class="resource-actions mt-4 flex gap-2">
+                      <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">复制链接</button>
+                      <button class="rounded-lg border border-slate-200 px-3 py-2 text-xs">⭐常用</button>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-dashed border-amber-200 bg-amber-50/50 p-4">
+                    <div class="text-sm font-semibold text-amber-700">异常提示</div>
+                    <div class="mt-2 text-xs leading-5 text-amber-600">
+                      当前项目存在 1 个待更新入口，建议优先检查链接有效性。
+                    </div>
+                    <button class="mt-4 rounded-lg bg-amber-600 px-3 py-2 text-xs text-white hover:bg-amber-700">
+                      去处理
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 渠道账号 -->
+          <div class="rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold">常用渠道账号</h2>
+                <p class="mt-1 text-sm text-slate-500">常用渠道放首页，打开和复制一步完成</p>
+              </div>
+              <button class="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">查看全部</button>
+            </div>
+
+            <div class="mt-4 overflow-hidden rounded-2xl border border-slate-100">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 text-slate-500">
+                  <tr>
+                    <th class="px-4 py-3 font-medium">渠道名称</th>
+                    <th class="px-4 py-3 font-medium">所属项目</th>
+                    <th class="px-4 py-3 font-medium">账号</th>
+                    <th class="px-4 py-3 font-medium">密码</th>
+                    <th class="px-4 py-3 font-medium">最近使用人</th>
+                    <th class="px-4 py-3 font-medium">更新时间</th>
+                    <th class="px-4 py-3 font-medium">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-t border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-4 font-medium">OPPO渠道</td>
+                    <td class="px-4 py-4 text-slate-500">六界仙尊</td>
+                    <td class="px-4 py-4">oppo_admin</td>
+                    <td class="px-4 py-4">••••••••</td>
+                    <td class="px-4 py-4 text-slate-500">财务-小陈</td>
+                    <td class="px-4 py-4 text-slate-500">今天 09:10</td>
+                    <td class="px-4 py-4">
+                      <div class="flex flex-wrap gap-2">
+                        <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制账号</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制密码</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制全部</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">查看记录</button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr class="border-t border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-4 font-medium">vivo渠道</td>
+                    <td class="px-4 py-4 text-slate-500">一起来修仙</td>
+                    <td class="px-4 py-4">vivo_ops</td>
+                    <td class="px-4 py-4">••••••••</td>
+                    <td class="px-4 py-4 text-slate-500">商务-小刘</td>
+                    <td class="px-4 py-4 text-slate-500">昨天 16:40</td>
+                    <td class="px-4 py-4">
+                      <div class="flex flex-wrap gap-2">
+                        <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制账号</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制密码</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制全部</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">查看记录</button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <tr class="border-t border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-4 font-medium">应用宝渠道</td>
+                    <td class="px-4 py-4 text-slate-500">创世封神</td>
+                    <td class="px-4 py-4">yyb_admin</td>
+                    <td class="px-4 py-4">••••••••</td>
+                    <td class="px-4 py-4 text-slate-500">王淼</td>
+                    <td class="px-4 py-4 text-slate-500">04-16 19:22</td>
+                    <td class="px-4 py-4">
+                      <div class="flex flex-wrap gap-2">
+                        <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制账号</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制密码</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制全部</button>
+                        <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">查看记录</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧 -->
+        <div class="col-span-4 overflow-y-auto pr-1 scrollbar-thin space-y-6">
+          <!-- 最近访问 -->
+          <div class="rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+            <div>
+              <h2 class="text-xl font-bold">最近访问</h2>
+              <p class="mt-1 text-sm text-slate-500">返回后继续用，不用重新翻找</p>
+            </div>
+
+            <div class="mt-4 space-y-3">
+              <div class="card-hover rounded-2xl border border-slate-100 p-4">
+                <div class="text-sm font-semibold">六界仙尊 / 结算表</div>
+                <div class="mt-1 text-xs text-slate-400">今天 10:12 · 王淼访问</div>
+                <button class="mt-3 rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">继续打开</button>
+              </div>
+
+              <div class="card-hover rounded-2xl border border-slate-100 p-4">
+                <div class="text-sm font-semibold">OPPO渠道 / 登录后台</div>
+                <div class="mt-1 text-xs text-slate-400">今天 09:55 · 财务-小陈访问</div>
+                <button class="mt-3 rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">继续打开</button>
+              </div>
+
+              <div class="card-hover rounded-2xl border border-slate-100 p-4">
+                <div class="text-sm font-semibold">一起来修仙 / 活动文档</div>
+                <div class="mt-1 text-xs text-slate-400">今天 09:21 · 商务-小刘访问</div>
+                <button class="mt-3 rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">继续打开</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 在线人员 -->
+          <div class="rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+            <div>
+              <h2 class="text-xl font-bold">在线人员</h2>
+              <p class="mt-1 text-sm text-slate-500">可看到谁正在使用当前系统</p>
+            </div>
+
+            <div class="mt-4 space-y-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold">王淼</div>
+                  <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700">在线</span>
+                </div>
+                <div class="mt-2 text-sm text-slate-600">正在查看 六界仙尊 / 结算表</div>
+                <div class="mt-1 text-xs text-slate-400">刚刚</div>
+                <button class="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">跟随查看</button>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold">财务-小陈</div>
+                  <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700">在线</span>
+                </div>
+                <div class="mt-2 text-sm text-slate-600">打开 OPPO渠道</div>
+                <div class="mt-1 text-xs text-slate-400">1分钟前</div>
+                <button class="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">跟随查看</button>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <div class="flex items-center justify-between">
+                  <div class="font-semibold">商务-小刘</div>
+                  <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700">在线</span>
+                </div>
+                <div class="mt-2 text-sm text-slate-600">编辑 一起来修仙</div>
+                <div class="mt-1 text-xs text-slate-400">3分钟前</div>
+                <button class="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">跟随查看</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 最近动态 -->
+          <div class="rounded-[28px] border border-slate-100 bg-white p-5 shadow-sm">
+            <div>
+              <h2 class="text-xl font-bold">最近动态</h2>
+              <p class="mt-1 text-sm text-slate-500">记录入口更新与账号使用痕迹</p>
+            </div>
+
+            <div class="mt-4 space-y-3">
+              <div class="rounded-2xl border border-slate-100 p-3 text-sm text-slate-600">六界仙尊 链接已更新为最新版 WPS 文档</div>
+              <div class="rounded-2xl border border-slate-100 p-3 text-sm text-slate-600">创世封神 被标记为“需更新”</div>
+              <div class="rounded-2xl border border-slate-100 p-3 text-sm text-slate-600">新增渠道：应用宝渠道</div>
+              <div class="rounded-2xl border border-slate-100 p-3 text-sm text-slate-600">财务复制了 vivo 渠道账号</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const searchData = [
+      { title: "六界仙尊", type: "项目", desc: "负责人：运营组" },
+      { title: "六界仙尊 / 策划文档", type: "WPS文档", desc: "项目主策划、活动说明" },
+      { title: "六界仙尊 / 结算表", type: "WPS表格", desc: "流水汇总、对账使用" },
+      { title: "六界仙尊 / 渠道后台", type: "后台地址", desc: "渠道投放、版本后台" },
+      { title: "一起来修仙", type: "项目", desc: "负责人：商务组" },
+      { title: "一起来修仙 / 投放表", type: "WPS表格", desc: "投放记录、预算数据" },
+      { title: "一起来修仙 / 活动文档", type: "WPS文档", desc: "活动节奏、奖励说明" },
+      { title: "创世封神", type: "项目", desc: "负责人：发行组" },
+      { title: "创世封神 / 发行后台", type: "后台地址", desc: "包体、配置、版本管理" },
+      { title: "OPPO渠道", type: "渠道账号", desc: "所属项目：六界仙尊" },
+      { title: "vivo渠道", type: "渠道账号", desc: "所属项目：一起来修仙" },
+      { title: "应用宝渠道", type: "渠道账号", desc: "所属项目：创世封神" },
+    ];
+
+    function renderSearchResults(list) {
+      const resultList = document.getElementById("searchResultList");
+      if (!resultList) return;
+
+      if (!list.length) {
+        resultList.innerHTML = `
+          <div class="rounded-2xl border border-slate-100 p-4 text-sm text-slate-400">
+            未找到匹配结果
+          </div>
+        `;
+        return;
+      }
+
+      resultList.innerHTML = list.map(item => `
+        <div class="rounded-2xl border border-slate-100 p-4 hover:bg-slate-50 cursor-pointer">
+          <div class="flex items-center justify-between gap-3">
+            <div class="text-sm font-semibold text-slate-900">${item.title}</div>
+            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700">${item.type}</span>
+          </div>
+          <div class="mt-1 text-xs text-slate-400">${item.desc}</div>
+          <div class="mt-3 flex gap-2">
+            <button class="rounded-lg bg-slate-900 px-3 py-2 text-xs text-white">打开</button>
+            <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">复制链接</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function toggleSearch(show) {
+      const panel = document.getElementById("searchPanel");
+      if (!panel) return;
+      panel.classList.toggle("show", show);
+      if (show) renderSearchResults(searchData);
+    }
+
+    function filterSearchResults() {
+      const input = document.getElementById("globalSearch");
+      if (!input) return;
+
+      const keyword = input.value.trim().toLowerCase();
+      if (!keyword) {
+        renderSearchResults(searchData);
+        return;
+      }
+
+      const filtered = searchData.filter(item =>
+        item.title.toLowerCase().includes(keyword) ||
+        item.type.toLowerCase().includes(keyword) ||
+        item.desc.toLowerCase().includes(keyword)
+      );
+      renderSearchResults(filtered);
+    }
+
+    document.addEventListener("click", function (e) {
+      const panel = document.getElementById("searchPanel");
+      const input = document.getElementById("globalSearch");
+      if (!panel || !input) return;
+
+      const clickedInside = panel.contains(e.target) || input.contains(e.target);
+      if (!clickedInside) {
+        panel.classList.remove("show");
+      }
+    });
+  </script>
+</body>
+</html>
