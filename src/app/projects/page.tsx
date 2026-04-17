@@ -1,7 +1,6 @@
 import { AppHeader } from "@/src/components/layout/app-header";
 import { AppSidebar } from "@/src/components/layout/app-sidebar";
 import { ProjectsView } from "@/src/components/projects/projects-view";
-import { projectCatalogItems } from "@/src/lib/mock/dashboard";
 
 export default function ProjectsPage() {
   return (
@@ -13,7 +12,7 @@ export default function ProjectsPage() {
           description="集中查看全部项目，支持筛选、搜索、卡片与列表切换。"
         />
         <div className="mt-6">
-          <ProjectsView items={projectCatalogItems} />
+          <ProjectsView />
         </div>
       </main>
     </div>

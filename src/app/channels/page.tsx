@@ -1,7 +1,6 @@
 import { ChannelsTableView } from "@/src/components/channels/channels-table-view";
 import { AppHeader } from "@/src/components/layout/app-header";
 import { AppSidebar } from "@/src/components/layout/app-sidebar";
-import { channelRows } from "@/src/lib/mock/dashboard";
 
 export default function ChannelsPage() {
   return (
@@ -13,7 +12,7 @@ export default function ChannelsPage() {
           description="查看全部渠道登录信息，支持搜索和状态筛选。"
         />
         <div className="mt-6">
-          <ChannelsTableView rows={channelRows} />
+          <ChannelsTableView />
         </div>
       </main>
     </div>
