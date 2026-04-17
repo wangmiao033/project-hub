@@ -1,18 +1,23 @@
 import Link from "next/link";
+import type { UserRole } from "@/src/lib/auth/get-current-user";
 
 const navItems = [
   { name: "首页总览", href: "/dashboard" },
   { name: "项目聚合", href: "/projects" },
   { name: "渠道账号", href: "/channels" },
+  { name: "用户管理", href: "/users", adminOnly: true },
   { name: "协作成员", href: "#" },
   { name: "系统设置", href: "#" },
 ];
 
 type AppSidebarProps = {
   currentPath?: string;
+  role?: UserRole;
 };
 
-export function AppSidebar({ currentPath = "/dashboard" }: AppSidebarProps) {
+export function AppSidebar({ currentPath = "/dashboard", role }: AppSidebarProps) {
+  const visibleItems = navItems.filter((item) => !item.adminOnly || role === "admin");
+
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col bg-slate-900 px-4 py-5 text-slate-100">
       <div className="mb-8 rounded-2xl border border-slate-700/80 bg-slate-800/70 px-4 py-3">
@@ -21,7 +26,7 @@ export function AppSidebar({ currentPath = "/dashboard" }: AppSidebarProps) {
       </div>
 
       <nav className="space-y-2">
-        {navItems.map((item) => (
+        {visibleItems.map((item) => (
           <Link
             key={item.name}
             href={item.href}
